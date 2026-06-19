@@ -322,12 +322,11 @@
       align-items: center;
       justify-content: center;
       gap: 1px;
-      margin-left: -6px;
     }
     .calendar-day-icon { width: 17px; height: 17px; line-height: 0; }
     .calendar-day-icon svg { width: 100%; height: 100%; display: block; }
     .calendar-day.has-workout { background: rgba(249,199,79,0.14); color: var(--primary); cursor: pointer; }
-    .calendar-day.has-workout .calendar-day-km { font-size: 12px; font-weight: 800; line-height: 1; }
+    .calendar-day.has-workout .calendar-day-km { font-size: 12px; font-weight: 800; line-height: 1; text-align: center; width: 100%; }
     .calendar-day.selected { background: var(--primary); color: var(--primary-ink); }
     .calendar-day.selected .calendar-day-km { color: var(--primary-ink); }
     .calendar-day.today { box-shadow: inset 0 0 0 3px var(--primary); }
@@ -916,7 +915,7 @@
         var onclick = hasWorkout ? ' onclick="toggleCalendarDay(\'' + dateKey + '\')"' : '';
         cells += '<div class="' + cls + '"' + onclick + '>' +
           '<div class="calendar-day-num">' + day + '</div>' +
-          (hasWorkout ? '<div class="calendar-day-body"><span class="calendar-day-icon">' + RUN_ICON + '</span><div class="calendar-day-km">' + dayTotals[dateKey].toFixed(1) + '</div></div>' : '') +
+          (hasWorkout ? '<div class="calendar-day-body"><div class="calendar-day-km">' + dayTotals[dateKey].toFixed(1) + '</div></div>' : '') +
           '</div>';
       }
       document.getElementById('calendarGrid').innerHTML = cells;
