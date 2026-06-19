@@ -509,7 +509,7 @@
       <div class="achieve-card">
         <div class="achieve-head">
           <button class="week-nav-btn" onclick="changeWeek(-1)" aria-label="上一週">‹</button>
-          <span><span id="weekLabel">本週進度</span>（<span id="weekRange">--</span>）</span>
+          <div style="text-align:center;line-height:1.4"><div id="weekLabel">本週進度</div><div id="weekRange" style="font-size:12px;font-weight:600;color:var(--muted);margin-top:2px">--</div></div>
           <button class="week-nav-btn" onclick="changeWeek(1)" aria-label="下一週">›</button>
         </div>
         <div class="achieve-bar"><div class="achieve-fill" id="weekFill"></div></div>
@@ -542,8 +542,6 @@
           <button class="filter-pill active" onclick="setFilter('all', this)">全部</button>
           <button class="filter-pill" onclick="setFilter('本月', this)">本月</button>
           <button class="filter-pill" onclick="setFilter('長跑', this)">長跑</button>
-          <button class="filter-pill" onclick="setFilter('間歇', this)">間歇</button>
-          <button class="filter-pill" onclick="setFilter('輕鬆跑', this)">輕鬆跑</button>
         </div>
         <div id="workoutList" class="panel record-list"></div>
       </div>
