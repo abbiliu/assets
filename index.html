@@ -6,16 +6,39 @@
   <title>富士山馬拉松訓練紀錄</title>
   <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/abbiliu/assets/main/fujirun.png">
   <link rel="icon" href="https://raw.githubusercontent.com/abbiliu/assets/main/fujirun.png">
-  <meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbyy3ucbX9j5bj6VeOz4KsLIrUf0o5HkpdTSM7H_5zP0-Y6UfNEx74ZcaifiLrzmqJW2Aw/exec">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="富士山訓練">
   <style>
-    body { margin: 0; background: #0c1a3a; display: flex; align-items: center; justify-content: center; height: 100vh; }
-    p { color: #f4f1e6; font-family: sans-serif; font-size: 18px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0c1a3a;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100vh; gap: 24px;
+      font-family: -apple-system, sans-serif;
+      color: #f4f1e6;
+    }
+    img { width: 96px; height: 96px; border-radius: 22px; }
+    h1 { font-size: 20px; font-weight: 600; }
+    p { font-size: 14px; color: #aac; text-align: center; line-height: 1.6; padding: 0 32px; }
+    a {
+      margin-top: 8px;
+      background: #f9c74f; color: #0c1a3a;
+      padding: 14px 32px; border-radius: 12px;
+      font-size: 16px; font-weight: 700;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
-  <p>載入中…</p>
   <script>
-    window.location.replace('https://script.google.com/macros/s/AKfycbyy3ucbX9j5bj6VeOz4KsLIrUf0o5HkpdTSM7H_5zP0-Y6UfNEx74ZcaifiLrzmqJW2Aw/exec');
+    if (window.navigator.standalone) {
+      window.location.replace('https://script.google.com/macros/s/AKfycbyy3ucbX9j5bj6VeOz4KsLIrUf0o5HkpdTSM7H_5zP0-Y6UfNEx74ZcaifiLrzmqJW2Aw/exec');
+    }
   </script>
+  <img src="https://raw.githubusercontent.com/abbiliu/assets/main/fujirun.png" alt="icon">
+  <h1>富士山馬拉松訓練紀錄</h1>
+  <p>點「分享」→「加入主畫面」<br>之後從主畫面開啟即可直接進入 App</p>
+  <a href="https://script.google.com/macros/s/AKfycbyy3ucbX9j5bj6VeOz4KsLIrUf0o5HkpdTSM7H_5zP0-Y6UfNEx74ZcaifiLrzmqJW2Aw/exec">立即開啟 App</a>
 </body>
 </html>
