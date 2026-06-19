@@ -335,7 +335,8 @@
     /* ====== Forms ====== */
     .receipt { background: var(--card-bg); border-radius: 28px; box-shadow: var(--soft-shadow); overflow: hidden; position: relative; }
     .form { padding: 20px 20px 24px; }
-    .form-row { display: grid; gap: 10px; margin-bottom: 20px; }
+    .form-row { display: grid; gap: 10px; margin-bottom: 20px; overflow: hidden; }
+    input[type="date"] { min-width: 0; width: 100%; max-width: 100%; -webkit-appearance: none; }
     .form-row.two { grid-template-columns: 1fr 1fr; gap: 12px; }
     label { font-size: 16px; font-weight: 800; color: var(--muted); letter-spacing: 0.4px; }
     input, select, textarea {
