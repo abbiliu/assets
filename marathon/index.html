@@ -487,6 +487,18 @@
     .nav-label { font-size: 16px; font-weight: 600; color: #5a6a8f; letter-spacing: 0.3px; transition: color .15s; }
     .nav-btn.active .nav-label { color: var(--primary); font-weight: 800; }
   </style>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').then(function(reg) {
+        reg.addEventListener('updatefound', function() {
+          var sw = reg.installing;
+          sw.addEventListener('statechange', function() {
+            if (sw.state === 'activated') location.reload();
+          });
+        });
+      });
+    }
+  </script>
 </head>
 
 <body>
