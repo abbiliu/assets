@@ -740,8 +740,25 @@
     window.onload = function() {
       loadWorkouts();
       loadWeeklyStats(0);
-      if (!COACH_MODE) loadSyncStatus();
+      if (!COACH_MODE) {
+        loadSyncStatus();
+        autoSync();
+      }
     };
+
+    function autoSync() {
+      gasPost('manualSync')
+        .then(function(result) {
+          if (!result || result.error) return;
+          if (result.imported > 0) {
+            showToast('同步到 ' + result.imported + ' 筆新訓練紀錄');
+            loadWorkouts();
+            loadWeeklyStats(state.weekOffset);
+            loadSyncStatus();
+          }
+        })
+        .catch(function() {});
+    }
 
     function showPage(id, el) {
       document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
