@@ -250,6 +250,24 @@
     }
     .rec-delete:active { background: rgba(255,133,133,0.30); }
 
+    .rec-edit {
+      background: rgba(249,199,79,0.15);
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--primary);
+      min-width: 56px;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background 0.15s;
+    }
+    .rec-edit:active { background: rgba(249,199,79,0.30); }
+
     .record-date-badge {
       flex-direction: column;
       gap: 2px;
@@ -289,6 +307,27 @@
       color: var(--ink);
       margin-bottom: 16px;
     }
+    .calendar-month-total {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin: -8px 0 14px;
+      font-weight: 700;
+    }
+    .calendar-month-total strong { color: var(--primary); font-weight: 900; }
+    .week-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .week-stat-row:last-child { border-bottom: none; }
+    .week-stat-row .wk-range { color: var(--muted); font-size: 13px; font-weight: 600; margin-left: 6px; }
+    .week-stat-row .wk-total { font-weight: 900; color: var(--primary); }
     .calendar-weekdays {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -372,25 +411,22 @@
       font-size: 16px;
     }
     .primary-btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+    .secondary-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 10px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .secondary-btn:active { background: rgba(255,255,255,0.1); }
     .helper-text { color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 12px; text-align: left; }
 
     /* ====== Details Page ====== */
-    .filter-bar { display: flex; gap: 10px; overflow-x: auto; padding: 0 2px 14px; scrollbar-width: none; }
-    .filter-bar::-webkit-scrollbar { display: none; }
-    .filter-pill {
-      flex: 0 0 auto;
-      border: 0;
-      border-radius: 999px;
-      padding: 7px 12px;
-      background: rgba(255,255,255,0.06);
-      color: var(--muted);
-      font-size: 16px;
-      font-weight: 850;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.20);
-      min-height: 36px;
-    }
-    .filter-pill.active { background: var(--primary); color: var(--primary-ink); }
     .details-head { margin-bottom: 14px; }
     .details-title { font-size: 14px; font-weight: 900; color: var(--ink); }
 
@@ -404,6 +440,14 @@
     }
     .chart-title { font-size: 16px; font-weight: 800; color: var(--ink); margin-bottom: 12px; }
     .chart-card canvas { width: 100% !important; max-height: 240px; }
+    .trend-summary {
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: var(--ink);
+      line-height: 1.7;
+    }
+    .trend-summary strong { color: var(--primary); font-size: 15px; }
 
     /* ====== 資料來源 ====== */
     .sync-panel { padding: 20px; margin-bottom: 18px; }
@@ -544,32 +588,23 @@
       <div class="details-head">
         <div class="details-title">訓練記錄</div>
       </div>
-      <div class="segmented" style="margin-bottom: 16px;">
-        <button type="button" class="active" onclick="setRecordsView('list', this)">列表</button>
-        <button type="button" onclick="setRecordsView('calendar', this)">月曆</button>
-      </div>
-      <div id="recordsListView">
-        <div class="filter-bar">
-          <button class="filter-pill active" onclick="setFilter('all', this)">全部</button>
-          <button class="filter-pill" onclick="setFilter('本月', this)">本月</button>
-          <button class="filter-pill" onclick="setFilter('長跑', this)">長跑</button>
+      <div class="calendar-card panel">
+        <div class="calendar-head">
+          <button class="week-nav-btn" onclick="changeCalendarMonth(-1)" aria-label="上個月">‹</button>
+          <span id="calendarMonthLabel">--</span>
+          <button class="week-nav-btn" onclick="changeCalendarMonth(1)" aria-label="下個月">›</button>
         </div>
-        <div id="workoutList" class="panel record-list"></div>
-      </div>
-      <div id="recordsCalendarView" style="display:none;">
-        <div class="calendar-card panel">
-          <div class="calendar-head">
-            <button class="week-nav-btn" onclick="changeCalendarMonth(-1)" aria-label="上個月">‹</button>
-            <span id="calendarMonthLabel">--</span>
-            <button class="week-nav-btn" onclick="changeCalendarMonth(1)" aria-label="下個月">›</button>
-          </div>
-          <div class="calendar-weekdays">
-            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
-          </div>
-          <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="calendar-month-total" id="calendarMonthTotal"></div>
+        <div class="calendar-weekdays">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
         </div>
-        <div id="calendarList" class="panel record-list" style="margin-top: 16px;"></div>
+        <div class="calendar-grid" id="calendarGrid"></div>
       </div>
+      <div class="section" style="margin-top: 16px;">
+        <div class="section-title" style="font-size: 15px;">每週統計</div>
+        <div id="weekStatsList" class="panel" style="margin-top: 12px;"></div>
+      </div>
+      <div id="calendarList" class="panel record-list" style="margin-top: 16px;"></div>
     </div>
 
     <!-- 3. 趨勢分析 -->
@@ -582,6 +617,11 @@
         <button type="button" onclick="setTrendRange(8, this)">8週</button>
         <button type="button" onclick="setTrendRange(12, this)">12週</button>
         <button type="button" onclick="setTrendRange('all', this)">全部</button>
+      </div>
+      <div class="trend-summary panel" id="trendSummary"></div>
+      <div class="chart-card">
+        <div class="chart-title">配速心率效率（數值越低越好，代表同心率下配速更快）</div>
+        <canvas id="efficiencyChart"></canvas>
       </div>
       <div class="chart-card">
         <div class="chart-title">週總距離 (km)</div>
@@ -621,15 +661,15 @@
     <!-- 5. 目標設定（教練模式隱藏） -->
     <div id="targets" class="page edit-only">
       <div class="details-head">
-        <div class="details-title">目標設定</div>
+        <div class="details-title" id="targetFormTitle">目標設定</div>
       </div>
       <div class="receipt">
         <div class="form">
           <div class="form-row">
             <label>週期類型</label>
             <div class="segmented">
-              <button type="button" class="active" onclick="setTargetSegment('periodType', '週', this)">週目標</button>
-              <button type="button" onclick="setTargetSegment('periodType', '月', this)">月目標</button>
+              <button type="button" class="active" id="targetPeriodWeekBtn" onclick="setTargetSegment('periodType', '週', this)">週目標</button>
+              <button type="button" id="targetPeriodMonthBtn" onclick="setTargetSegment('periodType', '月', this)">月目標</button>
             </div>
           </div>
           <div class="form-row">
@@ -652,7 +692,8 @@
             <label>教練備註</label>
             <textarea id="targetNotes" placeholder="可留空"></textarea>
           </div>
-          <button class="primary-btn" onclick="submitTarget()">儲存目標</button>
+          <button class="primary-btn" id="targetSubmitBtn" onclick="submitTarget()">儲存目標</button>
+          <button class="secondary-btn" id="targetCancelBtn" style="display:none;" onclick="cancelEditTarget()">取消編輯</button>
         </div>
       </div>
 
@@ -708,13 +749,13 @@
 
     var state = {
       workouts: [],
-      filter: 'all',
+      targets: [],
+      editingTargetRow: null,
       trendRange: 4,
       weekOffset: 0,
       splitsCache: {},
       charts: {},
       targetForm: { periodType: '週' },
-      recordsView: 'list',
       calendarYear: new Date().getFullYear(),
       calendarMonth: new Date().getMonth(),
       calendarSelectedDay: null
@@ -782,10 +823,7 @@
         if (nav) nav.classList.add('active');
       }
       if (id === 'overview') loadWeeklyStats(state.weekOffset);
-      if (id === 'records') {
-        renderWorkoutList();
-        if (state.recordsView === 'calendar') renderCalendar();
-      }
+      if (id === 'records') renderCalendar();
       if (id === 'trends') loadTrendData();
       if (id === 'source') loadSyncStatus();
       if (id === 'targets') loadTargets();
@@ -797,21 +835,9 @@
       gasGet('getWorkouts')
         .then(function(workouts) {
           state.workouts = Array.isArray(workouts) ? workouts : [];
-          renderWorkoutList();
-          if (state.recordsView === 'calendar') renderCalendar();
+          renderCalendar();
         })
         .catch(function(err) { showToast('讀取訓練紀錄失敗：' + err.message); });
-    }
-
-    function renderWorkoutList() {
-      var el = document.getElementById('workoutList');
-      var filtered = state.workouts.filter(function(w) {
-        if (state.filter === 'all') return true;
-        if (state.filter === '本月') return isInCurrentMonth(w.date);
-        return w.intensity === state.filter;
-      });
-      if (!filtered.length) { el.innerHTML = '<div class="empty">這個篩選目前沒有紀錄。</div>'; return; }
-      el.innerHTML = filtered.map(function(w) { return makeWorkoutItem(w); }).join('');
     }
 
     function makeWorkoutItem(w) {
@@ -885,24 +911,6 @@
         }).join('');
     }
 
-    function setFilter(filter, el) {
-      state.filter = filter;
-      document.querySelectorAll('#records .filter-pill').forEach(function(btn) { btn.classList.remove('active'); });
-      el.classList.add('active');
-      renderWorkoutList();
-    }
-
-    // ====== 訓練記錄：列表 / 月曆切換 ======
-
-    function setRecordsView(view, el) {
-      state.recordsView = view;
-      document.querySelectorAll('#records > .segmented button').forEach(function(btn) { btn.classList.remove('active'); });
-      el.classList.add('active');
-      document.getElementById('recordsListView').style.display = view === 'list' ? '' : 'none';
-      document.getElementById('recordsCalendarView').style.display = view === 'calendar' ? '' : 'none';
-      if (view === 'calendar') renderCalendar();
-    }
-
     function changeCalendarMonth(delta) {
       state.calendarMonth += delta;
       if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
@@ -932,8 +940,13 @@
         }
       });
 
+      var monthTotal = Object.keys(dayTotals).reduce(function(sum, k) { return sum + dayTotals[k]; }, 0);
+      document.getElementById('calendarMonthTotal').innerHTML = '本月累積 <strong>' + monthTotal.toFixed(1) + ' km</strong>';
+
       var todayKey = formatDateKey(new Date());
       var cells = '';
+      var weekStats = [];
+      var weekSum = 0, weekStartDay = 1;
       for (var i = 0; i < startWeekday; i++) cells += '<div class="calendar-day empty"></div>';
       for (var day = 1; day <= daysInMonth; day++) {
         var dateKey = formatDateKey(new Date(year, month, day));
@@ -946,8 +959,22 @@
           '<div class="calendar-day-num">' + day + '</div>' +
           (hasWorkout ? '<div class="calendar-day-body"><div class="calendar-day-km">' + dayTotals[dateKey].toFixed(1) + '</div></div>' : '') +
           '</div>';
+
+        weekSum += dayTotals[dateKey] || 0;
+        var weekday = new Date(year, month, day).getDay();
+        if (weekday === 6 || day === daysInMonth) {
+          weekStats.push({ start: weekStartDay, end: day, total: weekSum });
+          weekSum = 0;
+          weekStartDay = day + 1;
+        }
       }
       document.getElementById('calendarGrid').innerHTML = cells;
+
+      var weekStatsEl = document.getElementById('weekStatsList');
+      weekStatsEl.innerHTML = weekStats.length ? weekStats.map(function(w, idx) {
+        var rangeText = (month + 1) + '/' + w.start + (w.end !== w.start ? ' - ' + (month + 1) + '/' + w.end : '');
+        return '<div class="week-stat-row"><span>第' + (idx + 1) + '週<span class="wk-range">（' + rangeText + '）</span></span><span class="wk-total">' + w.total.toFixed(1) + ' km</span></div>';
+      }).join('') : '<div class="empty" style="padding:16px;">本月還沒有訓練紀錄。</div>';
 
       renderCalendarList();
     }
@@ -964,12 +991,6 @@
       });
       if (!list.length) { el.innerHTML = '<div class="empty">這個月還沒有訓練紀錄。</div>'; return; }
       el.innerHTML = list.map(function(w) { return makeWorkoutItem(w); }).join('');
-    }
-
-    function isInCurrentMonth(dateStr) {
-      var d = new Date(dateStr);
-      var today = new Date();
-      return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth();
     }
 
     // ====== 本週 / 本月統計 ======
@@ -1054,10 +1075,58 @@
       var distances = data.map(function(d) { return d.totalDistance; });
       var paces = data.map(function(d) { return d.avgPaceSecPerKm ? Math.round((d.avgPaceSecPerKm / 60) * 100) / 100 : null; });
       var hrs = data.map(function(d) { return d.avgHr; });
+      var efficiency = data.map(function(d) {
+        return (d.avgPaceSecPerKm && d.avgHr) ? Math.round((d.avgPaceSecPerKm / d.avgHr) * 100) / 100 : null;
+      });
 
+      renderChart('efficiencyChart', 'line', labels, efficiency, '#6bcf7f', true);
       renderChart('distanceChart', 'bar', labels, distances, '#f9c74f', false);
       renderChart('paceChart', 'line', labels, paces, '#5dade2', true);
       renderChart('hrChart', 'line', labels, hrs, '#ff8585', false);
+
+      renderTrendSummary(data);
+    }
+
+    function renderTrendSummary(data) {
+      var el = document.getElementById('trendSummary');
+      var valid = data.filter(function(d) { return d.avgPaceSecPerKm && d.avgHr; });
+      if (valid.length < 2) {
+        el.textContent = '資料還不夠，累積 2 週以上有心率的訓練紀錄後，才能看到身體狀態變化比較。';
+        return;
+      }
+
+      var mid = Math.ceil(valid.length / 2);
+      var early = valid.slice(0, mid);
+      var recent = valid.slice(mid).length ? valid.slice(mid) : early;
+
+      function avg(arr, key) {
+        return arr.reduce(function(sum, d) { return sum + d[key]; }, 0) / arr.length;
+      }
+      var earlyPace = avg(early, 'avgPaceSecPerKm');
+      var recentPace = avg(recent, 'avgPaceSecPerKm');
+      var earlyHr = avg(early, 'avgHr');
+      var recentHr = avg(recent, 'avgHr');
+      var earlyEf = earlyPace / earlyHr;
+      var recentEf = recentPace / recentHr;
+
+      var paceDeltaSec = Math.round(earlyPace - recentPace);
+      var hrDelta = Math.round(recentHr - earlyHr);
+      var efDeltaPct = Math.round(((earlyEf - recentEf) / earlyEf) * 1000) / 10;
+
+      var paceText = paceDeltaSec > 0 ? '配速加快了 ' + formatPaceDelta(paceDeltaSec) + '/km'
+        : (paceDeltaSec < 0 ? '配速變慢了 ' + formatPaceDelta(-paceDeltaSec) + '/km' : '配速持平');
+      var hrText = hrDelta < 0 ? '平均心率降低 ' + Math.abs(hrDelta) + ' bpm'
+        : (hrDelta > 0 ? '平均心率上升 ' + hrDelta + ' bpm' : '心率持平');
+      var verdict = efDeltaPct > 3 ? '身體狀態正在進步 📈'
+        : (efDeltaPct < -3 ? '身體狀態略有下滑，留意恢復與強度 📉' : '身體狀態大致持平');
+
+      el.innerHTML = '<strong>' + verdict + '</strong><br>近期相較前期：' + paceText + '、' + hrText +
+        '（同心率下的配速效率變化 ' + (efDeltaPct > 0 ? '+' : '') + efDeltaPct + '%）';
+    }
+
+    function formatPaceDelta(sec) {
+      var m = Math.floor(sec / 60), s = sec % 60;
+      return (m > 0 ? m + '分' : '') + s + '秒';
     }
 
     function renderChart(canvasId, type, labels, data, color, reverseY) {
@@ -1144,7 +1213,10 @@
 
     function loadTargets() {
       gasGet('getTargets')
-        .then(renderTargetList)
+        .then(function(targets) {
+          state.targets = Array.isArray(targets) ? targets : [];
+          renderTargetList(state.targets);
+        })
         .catch(function() {});
     }
 
@@ -1158,7 +1230,10 @@
           '<div class="record-meta">' + escapeHtml(formatDate(t.periodStart)) + ' - ' + escapeHtml(formatDate(t.periodEnd)) + '</div>' +
           (t.sessionPlan ? '<div class="record-meta">' + escapeHtml(t.sessionPlan) + '</div>' : '') +
           '</div></div>' +
+          '<div style="display:flex; gap:8px;">' +
+          '<button class="rec-edit" onclick="startEditTarget(' + t.rowIndex + ')" title="編輯">✏️</button>' +
           '<button class="rec-delete" onclick="confirmDeleteTarget(' + t.rowIndex + ')" title="刪除">🗑</button>' +
+          '</div>' +
           '</div>';
       }).join('');
     }
@@ -1167,6 +1242,37 @@
       state.targetForm[key] = value;
       el.parentNode.querySelectorAll('button').forEach(function(btn) { btn.classList.remove('active'); });
       el.classList.add('active');
+    }
+
+    function startEditTarget(rowIndex) {
+      var t = state.targets.find(function(x) { return x.rowIndex === rowIndex; });
+      if (!t) return;
+      state.editingTargetRow = rowIndex;
+      state.targetForm.periodType = t.periodType;
+      document.getElementById('targetPeriodWeekBtn').classList.toggle('active', t.periodType === '週');
+      document.getElementById('targetPeriodMonthBtn').classList.toggle('active', t.periodType === '月');
+      document.getElementById('targetStart').value = t.periodStart;
+      document.getElementById('targetEnd').value = t.periodEnd;
+      document.getElementById('targetDistance').value = t.targetDistanceKm;
+      document.getElementById('targetPlan').value = t.sessionPlan || '';
+      document.getElementById('targetNotes').value = t.coachNotes || '';
+      document.getElementById('targetFormTitle').textContent = '編輯目標';
+      document.getElementById('targetSubmitBtn').textContent = '更新目標';
+      document.getElementById('targetCancelBtn').style.display = '';
+      showPage('targets', document.querySelector('[data-nav="targets"]'));
+      document.querySelector('#targets .receipt').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function cancelEditTarget() {
+      state.editingTargetRow = null;
+      document.getElementById('targetStart').value = '';
+      document.getElementById('targetEnd').value = '';
+      document.getElementById('targetDistance').value = '';
+      document.getElementById('targetPlan').value = '';
+      document.getElementById('targetNotes').value = '';
+      document.getElementById('targetFormTitle').textContent = '目標設定';
+      document.getElementById('targetSubmitBtn').textContent = '儲存目標';
+      document.getElementById('targetCancelBtn').style.display = 'none';
     }
 
     function submitTarget() {
@@ -1182,9 +1288,14 @@
         showToast('請填寫開始/結束日期與目標距離');
         return;
       }
-      gasPost('setTarget', { data: data })
+      var isEditing = state.editingTargetRow != null;
+      var request = isEditing
+        ? gasPost('updateTarget', { rowIndex: state.editingTargetRow, data: data })
+        : gasPost('setTarget', { data: data });
+      request
         .then(function() {
-          showToast('已儲存目標');
+          showToast(isEditing ? '已更新目標' : '已儲存目標');
+          cancelEditTarget();
           loadTargets();
           loadWeeklyStats(state.weekOffset);
         })
@@ -1194,7 +1305,10 @@
     function confirmDeleteTarget(rowIndex) {
       if (!confirm('確定刪除這個目標？')) return;
       gasPost('deleteTarget', { rowIndex: rowIndex })
-        .then(function() { loadTargets(); })
+        .then(function() {
+          if (state.editingTargetRow === rowIndex) cancelEditTarget();
+          loadTargets();
+        })
         .catch(function() { showToast('刪除失敗，請重試'); });
     }
 
