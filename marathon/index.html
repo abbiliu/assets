@@ -147,7 +147,7 @@
       box-shadow: var(--soft-shadow);
     }
     .achieve-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 15px; font-weight: 850; color: var(--ink); margin-bottom: 14px; }
-    .week-nav-btn { 
+    .week-nav-btn {
       flex: 0 0 auto;
       border: 0;
       border-radius: 50%;
@@ -162,8 +162,10 @@
       align-items: center;
       justify-content: center;
       line-height: 1;
+      transition: transform .1s ease, background .12s ease;
+      -webkit-tap-highlight-color: transparent;
     }
-    .week-nav-btn:active { background: rgba(249,199,79,0.28); }
+    .week-nav-btn:active { background: rgba(249,199,79,0.32); transform: scale(0.84); }
     .achieve-bar { height: 12px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
     .achieve-fill { height: 100%; border-radius: 999px; background: var(--primary); transition: width .4s ease; width: 0%; }
     .achieve-fill.good { background: var(--good); }
@@ -749,7 +751,10 @@
 
     var state = {
       workouts: [],
+      workoutsLoaded: false,
       targets: [],
+      targetsLoaded: false,
+      lastSyncTime: '',
       editingTargetRow: null,
       trendRange: 4,
       weekOffset: 0,
@@ -760,6 +765,8 @@
       calendarMonth: new Date().getMonth(),
       calendarSelectedDay: null
     };
+
+    document.addEventListener('touchstart', function() {}, { passive: true }); // 讓 iOS Safari 觸發 :active 樣式
 
     (function init() {
       if (COACH_MODE) {
@@ -792,6 +799,7 @@
 
     window.onload = function() {
       loadWorkouts();
+      loadTargetsQuiet();
       loadWeeklyStats(0);
       if (!COACH_MODE) {
         loadSyncStatus();
@@ -835,9 +843,19 @@
       gasGet('getWorkouts')
         .then(function(workouts) {
           state.workouts = Array.isArray(workouts) ? workouts : [];
+          state.workoutsLoaded = true;
           renderCalendar();
         })
         .catch(function(err) { showToast('讀取訓練紀錄失敗：' + err.message); });
+    }
+
+    function loadTargetsQuiet() {
+      gasGet('getTargets')
+        .then(function(targets) {
+          state.targets = Array.isArray(targets) ? targets : [];
+          state.targetsLoaded = true;
+        })
+        .catch(function() {});
     }
 
     function makeWorkoutItem(w) {
@@ -1001,8 +1019,46 @@
         .catch(function(err) { showToast('讀取本週資料失敗：' + err.message); });
     }
 
+    // 週一為一週起點，需與 Code.gs 的 _getWeekRange_ 邏輯保持一致
+    function weekRangeKeys_(offset) {
+      var ref = new Date();
+      ref.setDate(ref.getDate() + (offset || 0) * 7);
+      var diffToMonday = (ref.getDay() + 6) % 7;
+      var monday = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - diffToMonday);
+      var sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+      return { start: formatDateKey(monday), end: formatDateKey(sunday) };
+    }
+
+    // 與後端 getWeeklyStats 相同邏輯，但用前端已快取的 workouts/targets 直接算，避免每次切換都打一次 GAS
+    function computeWeeklyStats(offset) {
+      var range = weekRangeKeys_(offset);
+      var weekWorkouts = state.workouts.filter(function(w) { return w.date >= range.start && w.date <= range.end; });
+      var totalDistance = weekWorkouts.reduce(function(sum, w) { return sum + w.distanceKm; }, 0);
+      var target = (state.targets || []).find(function(t) {
+        return t.periodType === '週' && t.periodStart <= range.end && t.periodEnd >= range.start;
+      });
+      var targetKm = target ? target.targetDistanceKm : 0;
+      return {
+        weekOffset: offset,
+        weekStart: range.start,
+        weekEnd: range.end,
+        totalDistance: Math.round(totalDistance * 100) / 100,
+        sessionCount: weekWorkouts.length,
+        target: targetKm,
+        sessionPlan: target ? target.sessionPlan : '',
+        achievementRate: target && targetKm > 0 ? Math.round((totalDistance / targetKm) * 1000) / 10 : null,
+        weekWorkouts: weekWorkouts,
+        lastSyncTime: state.lastSyncTime || ''
+      };
+    }
+
     function changeWeek(delta) {
-      loadWeeklyStats(state.weekOffset + delta);
+      var offset = state.weekOffset + delta;
+      if (state.workoutsLoaded && state.targetsLoaded) {
+        renderWeeklyStats(computeWeeklyStats(offset));
+      } else {
+        loadWeeklyStats(offset);
+      }
     }
 
     function weekOffsetLabel(offset) {
@@ -1161,6 +1217,7 @@
       if (COACH_MODE) return;
       gasGet('getSyncStatus')
         .then(function(status) {
+          state.lastSyncTime = status.lastSyncTime || '';
           document.getElementById('syncStatusText').textContent = status.authorized ? '已連接 Strava' : '尚未授權（請先完成 Strava 授權設定）';
           document.getElementById('lastSyncText').textContent = status.lastSyncTime ? formatSyncTime(status.lastSyncTime) : '尚未同步過';
         })
@@ -1215,6 +1272,7 @@
       gasGet('getTargets')
         .then(function(targets) {
           state.targets = Array.isArray(targets) ? targets : [];
+          state.targetsLoaded = true;
           renderTargetList(state.targets);
         })
         .catch(function() {});
