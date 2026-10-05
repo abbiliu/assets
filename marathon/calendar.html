@@ -88,9 +88,23 @@
   .notes h3{font-size:.62rem;letter-spacing:.14em;color:var(--long);text-transform:uppercase;margin-bottom:7px;font-weight:700}
   .notes p{margin-bottom:3px;padding-left:12px;text-indent:-12px;color:#4A4843}
   .notes b{color:var(--ink)}
+
+  .back-btn{
+    position:fixed; top:14px; left:14px; z-index:10;
+    width:34px; height:34px; border-radius:50%;
+    background:rgba(255,255,255,0.92); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.08); text-decoration:none;
+  }
+  .back-btn svg{width:18px;height:18px;fill:var(--ink)}
+  .back-btn:active{opacity:.6}
 </style>
 </head>
 <body>
+
+<a class="back-btn" href="./index.html" aria-label="返回">
+  <svg viewBox="0 -960 960 960"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z"/></svg>
+</a>
 
 <header>
   <div class="eyebrow">Mt. Fuji Marathon</div>
