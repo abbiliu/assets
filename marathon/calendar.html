@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>富士山馬拉松訓練日曆</title>
+<style>
+  :root{
+    --paper:#FBFAF7;
+    --ink:#2A2A28;
+    --muted:#9A9690;
+    --line:#EDEAE4;
+
+    --long:#3E6B52;   --long-bg:#E6EEE8;
+    --tempo:#B4572F;  --tempo-bg:#F8EAE2;
+    --easy:#4A6A86;   --easy-bg:#E7EDF2;
+    --gym:#7A6A92;    --gym-bg:#EEEAF3;
+    --trip:#9A8552;   --trip-bg:#F4EFE2;
+    --race:#A33A3A;   --race-bg:#F7E6E4;
+    --rest:#B0ABA3;   --rest-bg:#F4F2EE;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif;
+    color:var(--ink); background:var(--paper);
+    max-width:580px; margin:0 auto; padding:28px 16px 56px;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+
+  header{text-align:center;margin-bottom:22px}
+  header .eyebrow{font-size:.64rem;letter-spacing:.22em;color:var(--long);font-weight:600;text-transform:uppercase}
+  header h1{font-size:1.32rem;font-weight:700;letter-spacing:.04em;margin-top:8px}
+  header .sub{font-size:.78rem;color:var(--muted);margin-top:6px;letter-spacing:.03em}
+  header .rule{width:38px;height:2px;background:var(--long);margin:14px auto 0;border-radius:2px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:20px 0 26px}
+  .lg{font-size:.66rem;padding:4px 10px;border-radius:99px;font-weight:600;letter-spacing:.04em}
+
+  .month{
+    display:flex;align-items:baseline;gap:9px;
+    margin:30px 0 12px;padding-bottom:7px;
+    border-bottom:1.5px solid var(--ink);
+  }
+  .month .n{font-size:1.5rem;font-weight:700;letter-spacing:-.01em}
+  .month .t{font-size:.72rem;color:var(--muted);letter-spacing:.1em}
+
+  table{width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed}
+  th{font-size:.63rem;color:var(--muted);padding:2px 0 5px;font-weight:600;letter-spacing:.08em}
+  td{
+    vertical-align:top; height:62px; padding:5px 3px;
+    text-align:center; border-radius:7px; background:#fff;
+    border:1px solid var(--line);
+  }
+  .d{font-size:.64rem;color:var(--muted);display:block;line-height:1.1;font-weight:500}
+  .km{font-size:.94rem;font-weight:700;display:block;line-height:1.3;margin-top:3px;letter-spacing:-.01em}
+  .tag{font-size:.56rem;display:block;line-height:1.25;margin-top:2px;opacity:.75;font-weight:500}
+
+  .long{background:var(--long-bg);border-color:#D6E2DA}  .long .km,.long .tag{color:var(--long)}
+  .tempo{background:var(--tempo-bg);border-color:#EFDACC} .tempo .km,.tempo .tag{color:var(--tempo)}
+  .easy{background:var(--easy-bg);border-color:#D8E2EA}  .easy .km,.easy .tag{color:var(--easy)}
+  .gym{background:var(--gym-bg);border-color:#E1DBEA}    .gym .km,.gym .tag{color:var(--gym)} .gym .km{font-size:.74rem;font-weight:600}
+  .trip{background:var(--trip-bg);border-color:#E8E0CE}  .trip .km,.trip .tag{color:var(--trip)}
+  .race{background:var(--race-bg);border-color:#EED6D2}  .race .km,.race .tag{color:var(--race)}
+  .rest{background:var(--rest-bg);border-color:#E8E5DF}  .rest .km,.rest .tag{color:var(--rest)} .rest .km{font-size:.74rem;font-weight:600}
+  .empty{background:transparent;border-color:transparent}
+
+  .key{
+    background:#fff;border:1.5px solid var(--long);
+  }
+  .key .d{color:var(--long);opacity:.7}
+
+  .wk{
+    font-size:.66rem;color:var(--muted);text-align:right;
+    height:auto!important; padding:1px 4px 7px!important;
+    letter-spacing:.04em;font-weight:500;
+    background:transparent!important; border:none!important;
+    border-bottom:1px dashed var(--line)!important; border-radius:0!important;
+    vertical-align:middle!important;
+  }
+  .wk b{color:var(--ink);font-weight:600}
+  .wk .hl{color:var(--long);font-weight:600}
+
+  .notes{
+    margin-top:22px;padding:12px 14px 10px;
+    background:#fff;border:1px solid var(--line);border-radius:9px;
+    font-size:.68rem;line-height:1.45;
+  }
+  .notes h3{font-size:.62rem;letter-spacing:.14em;color:var(--long);text-transform:uppercase;margin-bottom:7px;font-weight:700}
+  .notes p{margin-bottom:3px;padding-left:12px;text-indent:-12px;color:#4A4843}
+  .notes b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Mt. Fuji Marathon</div>
+  <h1>富士山馬拉松訓練日曆</h1>
+  <div class="sub">2026.10.01 — 12.13　·　42.195 K</div>
+  <div class="rule"></div>
+</header>
+
+<div class="legend">
+  <span class="lg long" style="color:var(--long)">長距離</span>
+  <span class="lg tempo" style="color:var(--tempo)">節奏跑</span>
+  <span class="lg easy" style="color:var(--easy)">輕鬆跑</span>
+  <span class="lg gym" style="color:var(--gym)">重訓 · 協調</span>
+  <span class="lg trip" style="color:var(--trip)">旅途中</span>
+  <span class="lg race" style="color:var(--race)">賽事</span>
+  <span class="lg rest" style="color:#8B867E">休息</span>
+</div>
+
+<!-- 10月 -->
+<div class="month"><span class="n">10</span><span class="t">OCTOBER</span></div>
+<table>
+<tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr>
+
+<tr>
+  <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+  <td class="easy"><span class="d">1</span><span class="km">5K</span><span class="tag">已完成</span></td>
+  <td class="gym"><span class="d">2</span><span class="km">協調</span></td>
+  <td class="long"><span class="d">3</span><span class="km">8K</span><span class="tag">✓ 已完成</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <b>18.3K</b></td></tr>
+
+<tr>
+  <td class="easy"><span class="d">4</span><span class="km">5.3K</span><span class="tag">✓ 恢復</span></td>
+  <td class="gym"><span class="d">5</span><span class="km">重訓</span><span class="tag">下肢</span></td>
+  <td class="easy"><span class="d">6</span><span class="km">5-6K</span></td>
+  <td class="gym"><span class="d">7</span><span class="km">重訓</span><span class="tag">上半身</span></td>
+  <td class="long key"><span class="d">8</span><span class="km">10K</span><span class="tag">教練放行</span></td>
+  <td class="trip"><span class="d">9</span><span class="km">5K</span><span class="tag">南投前</span></td>
+  <td class="rest"><span class="d">10</span><span class="km">休</span><span class="tag">南投</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <span class="hl">25-26K</span> · 教練：單次 10K、總 25-30K</td></tr>
+
+<tr>
+  <td class="rest"><span class="d">11</span><span class="km">休</span><span class="tag">南投</span></td>
+  <td class="gym"><span class="d">12</span><span class="km">重訓</span></td>
+  <td class="easy"><span class="d">13</span><span class="km">6K</span></td>
+  <td class="gym"><span class="d">14</span><span class="km">重訓</span></td>
+  <td class="tempo"><span class="d">15</span><span class="km">6K</span><span class="tag">節奏</span></td>
+  <td class="rest"><span class="d">16</span><span class="km">休</span><span class="tag">移動台中</span></td>
+  <td class="long"><span class="d">17</span><span class="km">12-14K</span><span class="tag">台中清晨</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <b>26K</b></td></tr>
+
+<tr>
+  <td class="race"><span class="d">18</span><span class="km">3.5K</span><span class="tag">賽事·緩和</span></td>
+  <td class="gym"><span class="d">19</span><span class="km">重訓</span></td>
+  <td class="easy"><span class="d">20</span><span class="km">5K</span></td>
+  <td class="gym"><span class="d">21</span><span class="km">重訓</span></td>
+  <td class="tempo"><span class="d">22</span><span class="km">6K</span><span class="tag">節奏</span></td>
+  <td class="gym"><span class="d">23</span><span class="km">協調</span></td>
+  <td class="long key"><span class="d">24</span><span class="km">16-18K</span><span class="tag">里程碑 ①</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <span class="hl">33K</span></td></tr>
+
+<tr>
+  <td class="trip"><span class="d">25</span><span class="km">4K</span><span class="tag">出遊</span></td>
+  <td class="trip"><span class="d">26</span><span class="km">5K</span><span class="tag">出遊</span></td>
+  <td class="gym"><span class="d">27</span><span class="km">重訓</span></td>
+  <td class="easy"><span class="d">28</span><span class="km">6K</span></td>
+  <td class="trip"><span class="d">29</span><span class="km">5K</span><span class="tag">泰國</span></td>
+  <td class="rest"><span class="d">30</span><span class="km">休</span><span class="tag">泰國</span></td>
+  <td class="trip"><span class="d">31</span><span class="km">6K</span><span class="tag">泰國</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <b>26K</b> · 減量</td></tr>
+</table>
+
+<!-- 11月 -->
+<div class="month"><span class="n">11</span><span class="t">NOVEMBER</span></div>
+<table>
+<tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr>
+
+<tr>
+  <td class="rest"><span class="d">1</span><span class="km">休</span><span class="tag">泰國</span></td>
+  <td class="gym"><span class="d">2</span><span class="km">重訓</span></td>
+  <td class="easy"><span class="d">3</span><span class="km">6K</span></td>
+  <td class="gym"><span class="d">4</span><span class="km">重訓</span></td>
+  <td class="easy"><span class="d">5</span><span class="km">7K</span><span class="tag">找節奏</span></td>
+  <td class="rest"><span class="d">6</span><span class="km">休</span><span class="tag">備戰</span></td>
+  <td class="long key"><span class="d">7</span><span class="km">22K</span><span class="tag">里程碑 ② 楓樹坑</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <span class="hl">35K</span> · 坡度＋補給演練</td></tr>
+
+<tr>
+  <td class="rest"><span class="d">8</span><span class="km">休</span></td>
+  <td class="gym"><span class="d">9</span><span class="km">重訓</span></td>
+  <td class="easy"><span class="d">10</span><span class="km">5K</span></td>
+  <td class="gym"><span class="d">11</span><span class="km">重訓</span></td>
+  <td class="tempo"><span class="d">12</span><span class="km">6K</span><span class="tag">節奏</span></td>
+  <td class="gym"><span class="d">13</span><span class="km">協調</span></td>
+  <td class="easy"><span class="d">14</span><span class="km">5K</span><span class="tag">賽前輕鬆</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <b>16K</b></td></tr>
+
+<tr>
+  <td class="race"><span class="d">15</span><span class="km">10K</span><span class="tag">賽事</span></td>
+  <td class="rest"><span class="d">16</span><span class="km">休</span></td>
+  <td class="easy"><span class="d">17</span><span class="km">5K</span></td>
+  <td class="gym"><span class="d">18</span><span class="km">重訓</span></td>
+  <td class="tempo"><span class="d">19</span><span class="km">7K</span><span class="tag">節奏</span></td>
+  <td class="gym"><span class="d">20</span><span class="km">協調</span></td>
+  <td class="long"><span class="d">21</span><span class="km">14-16K</span><span class="tag">長距離</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <b>38K</b></td></tr>
+
+<tr>
+  <td class="easy"><span class="d">22</span><span class="km">4K</span><span class="tag">恢復</span></td>
+  <td class="gym"><span class="d">23</span><span class="km">重訓</span></td>
+  <td class="easy"><span class="d">24</span><span class="km">5K</span></td>
+  <td class="gym"><span class="d">25</span><span class="km">重訓</span></td>
+  <td class="tempo"><span class="d">26</span><span class="km">5K</span><span class="tag">節奏</span></td>
+  <td class="rest"><span class="d">27</span><span class="km">休</span><span class="tag">備戰</span></td>
+  <td class="long key"><span class="d">28</span><span class="km">26K</span><span class="tag">里程碑 ③ 賽前最長</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <span class="hl">40K</span> · 完整補給演練</td></tr>
+
+<tr>
+  <td class="rest"><span class="d">29</span><span class="km">休</span></td>
+  <td class="rest"><span class="d">30</span><span class="km">休</span></td>
+  <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+</tr>
+</table>
+
+<!-- 12月 -->
+<div class="month"><span class="n">12</span><span class="t">DECEMBER　·　減量期 TAPER</span></div>
+<table>
+<tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr>
+
+<tr>
+  <td class="empty"></td><td class="empty"></td>
+  <td class="easy"><span class="d">1</span><span class="km">5K</span></td>
+  <td class="gym"><span class="d">2</span><span class="km">輕重訓</span></td>
+  <td class="tempo"><span class="d">3</span><span class="km">5K</span><span class="tag">馬配速段</span></td>
+  <td class="rest"><span class="d">4</span><span class="km">休</span></td>
+  <td class="long"><span class="d">5</span><span class="km">10-12K</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <b>22K</b></td></tr>
+
+<tr>
+  <td class="rest"><span class="d">6</span><span class="km">休</span></td>
+  <td class="rest"><span class="d">7</span><span class="km">休</span></td>
+  <td class="easy"><span class="d">8</span><span class="km">4K</span></td>
+  <td class="rest"><span class="d">9</span><span class="km">休</span></td>
+  <td class="tempo"><span class="d">10</span><span class="km">4K</span><span class="tag">馬配速段</span></td>
+  <td class="trip"><span class="d">11</span><span class="km">休</span><span class="tag">飛日本</span></td>
+  <td class="easy"><span class="d">12</span><span class="km">3K</span><span class="tag">極輕鬆</span></td>
+</tr>
+<tr><td colspan="7" class="wk">本週 <b>11K</b></td></tr>
+
+<tr>
+  <td class="race" style="border-width:1.5px"><span class="d">13</span><span class="km">42.195K</span><span class="tag">富士山馬拉松</span></td>
+  <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
+</tr>
+</table>
+
+<div class="notes">
+  <h3>執行重點</h3>
+  <p>— <b>10/8 的 10K</b>：膝蓋問題後首次突破 8K，全程 Z2、心率壓 150 以下，觀察第 9-10K 髕骨下緣反應。</p>
+  <p>— <b>11/7 楓樹坑</b>：暖身3K → 環線2圈 → 收尾3K，第一圈下坡放慢，同時測補給。</p>
+  <p>— <b>賽事</b>：10/18 當緩和跑不衝速；11/15 用節奏跑強度，可推估完賽時間。</p>
+  <p>— <b>加量門檻是狀態不是日期</b>：長距離後段膝蓋緊繃就延一週，整串順延。</p>
+  <p>— <b>心率優先</b>：輕鬆跑 135–148、節奏跑 160–168、長距離 Z2 為主。</p>
+  <p>— <b>賽日</b>：21K 激坡（爬升100m）直接快走；35K 長下坡放慢、小步幅高步頻。</p>
+</div>
+
+</body>
+</html>

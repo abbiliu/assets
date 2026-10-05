@@ -137,6 +137,8 @@
     .hero-count { font-size: 38px; font-weight: 900; color: var(--primary); margin: 6px 0; position: relative; z-index: 1; line-height: 1; }
     .hero-count span { font-size: 14px; font-weight: 700; }
     .hero-sub { font-size: 14px; color: var(--ink); position: relative; z-index: 1; }
+    .hero-link { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--accent-2); text-decoration: none; border-bottom: 1px solid var(--accent-2); padding-bottom: 2px; position: relative; z-index: 1; }
+    .hero-link:active { opacity: 0.6; }
 
     /* ====== Achieve Card (本週達成率) ====== */
     .achieve-card {
@@ -578,6 +580,7 @@
       <div class="hero-card">
         <div class="hero-label">Race Day Countdown</div>
         <div class="hero-count" id="raceCountdown">--<span> 天</span></div>
+        <a class="hero-link" href="./calendar.html" target="_blank" rel="noopener">📅 查看完整訓練日曆</a>
       </div>
 
       <div class="today-card" id="todayCard">
