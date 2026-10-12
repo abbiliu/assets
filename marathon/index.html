@@ -507,6 +507,21 @@
     }
     .toast.show { opacity: 1; transform: translateY(0); }
 
+    /* ====== Modal ====== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(5,10,24,0.72);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 50; padding: 20px;
+    }
+    .modal-box {
+      background: var(--card-bg); border-radius: 24px; box-shadow: var(--shadow);
+      width: 100%; max-width: 420px; max-height: 86vh; overflow-y: auto;
+      padding: 20px;
+    }
+    .modal-title { font-size: 16px; font-weight: 900; color: var(--ink); margin-bottom: 14px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+    .modal-actions .primary-btn, .modal-actions .secondary-btn { flex: 1; margin-top: 0; }
+
     /* ====== Bottom Nav ====== */
     .bottom-nav {
       position: fixed;
@@ -632,7 +647,11 @@
         <div class="section-title" style="font-size: 15px;">每週統計</div>
         <div id="weekStatsList" class="panel" style="margin-top: 12px;"></div>
       </div>
-      <div id="calendarList" class="panel record-list" style="margin-top: 16px;"></div>
+      <div class="section-head edit-only" style="margin-top: 16px;">
+        <div class="section-title" style="font-size: 15px;">所有訓練紀錄</div>
+        <button class="section-link" onclick="openWorkoutModal('add')">+ 新增紀錄</button>
+      </div>
+      <div id="calendarList" class="panel record-list" style="margin-top: 8px;"></div>
     </div>
 
     <!-- 3. 趨勢分析 -->
@@ -729,6 +748,33 @@
         <div class="section-title" style="font-size: 15px;">歷史目標</div>
         <div id="targetList" class="panel record-list" style="margin-top: 12px;"></div>
       </div>
+
+      <div class="section" style="margin-top: 20px;">
+        <div class="section-title" id="dpFormTitle" style="font-size: 15px;">📅 每日課表</div>
+        <div class="receipt" style="margin-top: 12px;">
+          <div class="form">
+            <div class="form-row">
+              <label>日期</label>
+              <input id="dpDate" type="date">
+            </div>
+            <div class="form-row">
+              <label>課表類型</label>
+              <input id="dpType" type="text" placeholder="例如：長距離、輕鬆跑、重訓、完全休息">
+            </div>
+            <div class="form-row">
+              <label>距離 (km)</label>
+              <input id="dpDistance" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0">
+            </div>
+            <div class="form-row">
+              <label>備註</label>
+              <textarea id="dpNote" placeholder="配速/心率/地點等"></textarea>
+            </div>
+            <button class="primary-btn" id="dpSubmitBtn" onclick="submitDailyPlan()">儲存課表</button>
+            <button class="secondary-btn" id="dpCancelBtn" style="display:none;" onclick="cancelEditDailyPlan()">取消編輯</button>
+          </div>
+        </div>
+        <div id="dailyPlanList" class="panel record-list" style="margin-top: 12px; max-height: 420px; overflow-y: auto;"></div>
+      </div>
     </div>
   </div>
 
@@ -758,6 +804,47 @@
 
   <div id="toast" class="toast"></div>
 
+  <div id="workoutModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this) closeWorkoutModal()">
+    <div class="modal-box">
+      <div class="modal-title" id="wkModalTitle">新增訓練紀錄</div>
+      <div class="form">
+        <div class="form-row">
+          <label>日期</label>
+          <input id="wkDate" type="date">
+        </div>
+        <div class="form-row">
+          <label>類型</label>
+          <input id="wkType" type="text" placeholder="例如：跑步、重訓">
+        </div>
+        <div class="form-row">
+          <label>標題（選填）</label>
+          <input id="wkTitle" type="text" placeholder="例如：晨間跑步">
+        </div>
+        <div class="form-row">
+          <label>距離 (km)</label>
+          <input id="wkDistance" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0">
+        </div>
+        <div class="form-row two">
+          <div><label style="display:block;margin-bottom:6px;">時長：分</label><input id="wkMin" type="number" min="0" inputmode="numeric" placeholder="0"></div>
+          <div><label style="display:block;margin-bottom:6px;">秒</label><input id="wkSec" type="number" min="0" max="59" inputmode="numeric" placeholder="0"></div>
+        </div>
+        <div class="form-row two">
+          <div><label style="display:block;margin-bottom:6px;">平均心率</label><input id="wkAvgHr" type="number" min="0" inputmode="numeric" placeholder="選填"></div>
+          <div><label style="display:block;margin-bottom:6px;">最大心率</label><input id="wkMaxHr" type="number" min="0" inputmode="numeric" placeholder="選填"></div>
+        </div>
+        <div class="form-row">
+          <label>備註</label>
+          <textarea id="wkNotes" placeholder="可留空"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-btn" onclick="closeWorkoutModal()">取消</button>
+        <button class="primary-btn" id="wkModalSubmitBtn" onclick="submitWorkoutModal()">儲存</button>
+      </div>
+      <button class="rec-delete" id="wkModalDeleteBtn" style="width:100%; margin-top:10px; display:none; min-height:48px;" onclick="deleteWorkoutFromModal()">🗑 刪除這筆紀錄</button>
+    </div>
+  </div>
+
   <script>
     var COACH_MODE = new URLSearchParams(window.location.search).get('view') === 'coach';
     var GAS_URL = 'https://script.google.com/macros/s/AKfycbyy3ucbX9j5bj6VeOz4KsLIrUf0o5HkpdTSM7H_5zP0-Y6UfNEx74ZcaifiLrzmqJW2Aw/exec';
@@ -783,6 +870,8 @@
       dailyPlans: [],
       lastSyncTime: '',
       editingTargetRow: null,
+      editingDailyPlanDate: null,
+      editingWorkoutRow: null,
       trendRange: 4,
       weekOffset: 0,
       splitsCache: {},
@@ -891,6 +980,7 @@
         .then(function(plans) {
           state.dailyPlans = Array.isArray(plans) ? plans : [];
           renderTodayPlan();
+          renderDailyPlanList(state.dailyPlans);
         })
         .catch(function() {});
     }
@@ -931,6 +1021,7 @@
         '</div></div>' +
         '<div class="record-right">' +
         '<div class="record-amount-row"><div class="record-amount">' + w.distanceKm + '<span class="unit"> km</span></div>' + chevron + '</div>' +
+        '<button class="rec-edit edit-only" onclick="event.stopPropagation(); openWorkoutModal(\'edit\', ' + w.rowIndex + ')" title="編輯">✏️</button>' +
         '</div></div>';
     }
 
@@ -1422,6 +1513,173 @@
         .then(function() {
           if (state.editingTargetRow === rowIndex) cancelEditTarget();
           loadTargets();
+        })
+        .catch(function() { showToast('刪除失敗，請重試'); });
+    }
+
+    // ====== DailyPlan（每日課表）編輯 ======
+
+    function renderDailyPlanList(plans) {
+      var el = document.getElementById('dailyPlanList');
+      if (!el) return;
+      if (!plans.length) { el.innerHTML = '<div class="empty">還沒有每日課表。</div>'; return; }
+      var todayKey = formatDateKey(new Date());
+      var sorted = plans.slice().sort(function(a, b) { return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0); });
+      el.innerHTML = sorted.map(function(p) {
+        var isPast = p.date < todayKey;
+        var isToday = p.date === todayKey;
+        var kmText = p.distanceKm > 0 ? p.distanceKm + ' km' : '—';
+        var dateParts = formatDateParts(p.date);
+        return '<div class="record-item" style="' + (isPast ? 'opacity:0.5;' : '') + (isToday ? 'background:rgba(249,199,79,0.08);' : '') + '">' +
+          '<div class="record-left"><div class="record-badge record-date-badge"><div>' + dateParts.md + '</div><div class="badge-dow">' + dateParts.dow + '</div></div><div class="record-main">' +
+          '<div class="record-name">' + escapeHtml(p.type || '—') + '　' + escapeHtml(kmText) + '</div>' +
+          (p.note ? '<div class="record-meta">' + escapeHtml(p.note) + '</div>' : '') +
+          '</div></div>' +
+          '<div style="display:flex; gap:8px;">' +
+          '<button class="rec-edit" onclick="startEditDailyPlan(\'' + p.date + '\')" title="編輯">✏️</button>' +
+          '<button class="rec-delete" onclick="confirmDeleteDailyPlan(\'' + p.date + '\')" title="刪除">🗑</button>' +
+          '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    function startEditDailyPlan(date) {
+      var p = state.dailyPlans.find(function(x) { return x.date === date; });
+      if (!p) return;
+      state.editingDailyPlanDate = date;
+      document.getElementById('dpDate').value = p.date;
+      document.getElementById('dpType').value = p.type || '';
+      document.getElementById('dpDistance').value = p.distanceKm || '';
+      document.getElementById('dpNote').value = p.note || '';
+      document.getElementById('dpFormTitle').textContent = '編輯課表：' + p.date;
+      document.getElementById('dpSubmitBtn').textContent = '更新課表';
+      document.getElementById('dpCancelBtn').style.display = '';
+      showPage('targets', document.querySelector('[data-nav="targets"]'));
+      document.getElementById('dpFormTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function cancelEditDailyPlan() {
+      state.editingDailyPlanDate = null;
+      document.getElementById('dpDate').value = '';
+      document.getElementById('dpType').value = '';
+      document.getElementById('dpDistance').value = '';
+      document.getElementById('dpNote').value = '';
+      document.getElementById('dpFormTitle').textContent = '📅 每日課表';
+      document.getElementById('dpSubmitBtn').textContent = '儲存課表';
+      document.getElementById('dpCancelBtn').style.display = 'none';
+    }
+
+    function submitDailyPlan() {
+      var data = {
+        date: document.getElementById('dpDate').value,
+        type: document.getElementById('dpType').value.trim(),
+        distanceKm: document.getElementById('dpDistance').value,
+        note: document.getElementById('dpNote').value.trim()
+      };
+      if (!data.date || !data.type) {
+        showToast('請填寫日期與課表類型');
+        return;
+      }
+      gasPost('upsertDailyPlan', { data: data })
+        .then(function() {
+          showToast('已儲存課表');
+          cancelEditDailyPlan();
+          loadDailyPlans();
+        })
+        .catch(function(err) { showToast('儲存失敗：' + getErrorMessage(err)); });
+    }
+
+    function confirmDeleteDailyPlan(date) {
+      if (!confirm('確定刪除 ' + date + ' 的課表？')) return;
+      gasPost('deleteDailyPlan', { date: date })
+        .then(function() {
+          if (state.editingDailyPlanDate === date) cancelEditDailyPlan();
+          loadDailyPlans();
+        })
+        .catch(function() { showToast('刪除失敗，請重試'); });
+    }
+
+    // ====== Workout（訓練紀錄）新增/編輯 ======
+
+    function openWorkoutModal(mode, rowIndex) {
+      var isEdit = mode === 'edit';
+      state.editingWorkoutRow = isEdit ? rowIndex : null;
+      if (isEdit) {
+        var w = state.workouts.find(function(x) { return x.rowIndex === rowIndex; });
+        if (!w) return;
+        document.getElementById('wkModalTitle').textContent = '編輯訓練紀錄';
+        document.getElementById('wkDate').value = w.date;
+        document.getElementById('wkType').value = w.type || '';
+        document.getElementById('wkTitle').value = w.title || '';
+        document.getElementById('wkDistance').value = w.distanceKm || '';
+        document.getElementById('wkMin').value = Math.floor((w.durationSec || 0) / 60);
+        document.getElementById('wkSec').value = (w.durationSec || 0) % 60;
+        document.getElementById('wkAvgHr').value = w.avgHr || '';
+        document.getElementById('wkMaxHr').value = w.maxHr || '';
+        document.getElementById('wkNotes').value = w.notes || '';
+        document.getElementById('wkModalSubmitBtn').textContent = '更新';
+        document.getElementById('wkModalDeleteBtn').style.display = '';
+      } else {
+        document.getElementById('wkModalTitle').textContent = '新增訓練紀錄';
+        document.getElementById('wkDate').value = formatDateKey(new Date());
+        document.getElementById('wkType').value = '';
+        document.getElementById('wkTitle').value = '';
+        document.getElementById('wkDistance').value = '';
+        document.getElementById('wkMin').value = '';
+        document.getElementById('wkSec').value = '';
+        document.getElementById('wkAvgHr').value = '';
+        document.getElementById('wkMaxHr').value = '';
+        document.getElementById('wkNotes').value = '';
+        document.getElementById('wkModalSubmitBtn').textContent = '新增';
+        document.getElementById('wkModalDeleteBtn').style.display = 'none';
+      }
+      document.getElementById('workoutModal').style.display = 'flex';
+    }
+
+    function closeWorkoutModal() {
+      document.getElementById('workoutModal').style.display = 'none';
+      state.editingWorkoutRow = null;
+    }
+
+    function submitWorkoutModal() {
+      var date = document.getElementById('wkDate').value;
+      var type = document.getElementById('wkType').value.trim();
+      if (!date || !type) { showToast('請填寫日期與類型'); return; }
+      var min = Number(document.getElementById('wkMin').value || 0);
+      var sec = Number(document.getElementById('wkSec').value || 0);
+      var data = {
+        date: date,
+        type: type,
+        title: document.getElementById('wkTitle').value.trim(),
+        distanceKm: document.getElementById('wkDistance').value,
+        durationSec: min * 60 + sec,
+        avgHr: document.getElementById('wkAvgHr').value,
+        maxHr: document.getElementById('wkMaxHr').value,
+        notes: document.getElementById('wkNotes').value.trim()
+      };
+      var isEditing = state.editingWorkoutRow != null;
+      var request = isEditing
+        ? gasPost('updateWorkout', { rowIndex: state.editingWorkoutRow, data: data })
+        : gasPost('addWorkout', { data: data });
+      request
+        .then(function() {
+          showToast(isEditing ? '已更新紀錄' : '已新增紀錄');
+          closeWorkoutModal();
+          loadWorkouts();
+          loadWeeklyStats(state.weekOffset);
+        })
+        .catch(function(err) { showToast('儲存失敗：' + getErrorMessage(err)); });
+    }
+
+    function deleteWorkoutFromModal() {
+      if (state.editingWorkoutRow == null) return;
+      if (!confirm('確定刪除這筆紀錄？')) return;
+      gasPost('deleteWorkout', { rowIndex: state.editingWorkoutRow })
+        .then(function() {
+          showToast('已刪除');
+          closeWorkoutModal();
+          loadWorkouts();
+          loadWeeklyStats(state.weekOffset);
         })
         .catch(function() { showToast('刪除失敗，請重試'); });
     }
