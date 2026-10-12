@@ -98,6 +98,35 @@
   }
   .back-btn svg{width:18px;height:18px;fill:#fff}
   .back-btn:active{opacity:.6}
+
+  td[data-date]{cursor:pointer; transition:box-shadow .12s}
+  td[data-date]:active{box-shadow:inset 0 0 0 1.5px var(--ink)}
+
+  .edit-overlay{
+    display:none; position:fixed; inset:0; background:rgba(40,38,34,0.45);
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .edit-overlay.open{display:flex}
+  .edit-box{
+    background:#fff; border-radius:16px; width:100%; max-width:320px;
+    padding:20px; box-shadow:0 12px 40px rgba(0,0,0,0.25);
+  }
+  .edit-box h3{font-size:.95rem; font-weight:700; margin-bottom:14px}
+  .edit-box label{display:block; font-size:.68rem; color:var(--muted); margin:12px 0 5px; font-weight:600}
+  .edit-box input[type="text"]{
+    width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:9px;
+    font-size:.86rem; font-family:inherit; color:var(--ink); background:#FBFAF7;
+  }
+  .edit-toggle-row{display:flex; align-items:center; justify-content:space-between; margin-top:14px}
+  .edit-toggle-row label{margin:0; font-size:.8rem; color:var(--ink); font-weight:600}
+  .edit-actions{display:flex; gap:8px; margin-top:18px}
+  .edit-actions button{
+    flex:1; padding:11px; border:none; border-radius:10px; font-size:.84rem;
+    font-weight:600; cursor:pointer;
+  }
+  .edit-save{background:var(--ink); color:#fff}
+  .edit-cancel{background:var(--rest-bg); color:var(--ink)}
+  .edit-reset{background:transparent; color:var(--muted); text-decoration:underline; font-weight:500; margin-top:12px; width:100%; text-align:center; font-size:.72rem; border:none; cursor:pointer; padding:4px}
 </style>
 </head>
 <body>
@@ -279,10 +308,104 @@
   <p>— <b>賽日</b>：21K 激坡（爬升100m）直接快走；35K 長下坡放慢、小步幅高步頻。</p>
 </div>
 
+<div class="edit-overlay" id="editOverlay">
+  <div class="edit-box">
+    <h3 id="editTitle">編輯課表</h3>
+    <label>目標（例如 14K、重訓）</label>
+    <input type="text" id="editKm" placeholder="14K">
+    <label>小字備註（例如 本週重點）</label>
+    <input type="text" id="editTag" placeholder="本週重點">
+    <div class="edit-toggle-row">
+      <label for="editCompleted">標記為已完成</label>
+      <input type="checkbox" id="editCompleted" style="width:20px;height:20px;">
+    </div>
+    <div class="edit-actions">
+      <button class="edit-cancel" onclick="closeDateEditor()">取消</button>
+      <button class="edit-save" onclick="saveDateEditor()">儲存</button>
+    </div>
+    <button class="edit-reset" onclick="resetDateEditor()">還原成預設顯示</button>
+  </div>
+</div>
+
 <script>
 (function(){
   var API = "https://script.google.com/macros/s/AKfycbyy3ucbX9j5bj6VeOz4KsLIrUf0o5HkpdTSM7H_5zP0-Y6UfNEx74ZcaifiLrzmqJW2Aw/exec";
   var RUNNABLE = ["long","tempo","easy","trip","race"];
+  var planByDate = {};
+  var editingDate = null;
+
+  function gasPost(action, data) {
+    return fetch(API, {
+      method: "POST",
+      body: JSON.stringify(Object.assign({ action: action }, data || {}))
+    }).then(function(r){ return r.json(); });
+  }
+
+  function applyDailyPlans(plans) {
+    (plans || []).forEach(function(p){ planByDate[p.date] = p; });
+    document.querySelectorAll("td[data-date]").forEach(function(td){
+      var p = planByDate[td.dataset.date];
+      if (!p) return;
+      var kmEl = td.querySelector(".km");
+      var tagEl = td.querySelector(".tag");
+      if (p.calendarLabel && kmEl) kmEl.textContent = p.calendarLabel;
+      if (p.completed) {
+        if (!tagEl) { tagEl = document.createElement("span"); tagEl.className = "tag"; td.appendChild(tagEl); }
+        tagEl.textContent = "✓ 已完成";
+      } else if (p.calendarTag) {
+        if (!tagEl) { tagEl = document.createElement("span"); tagEl.className = "tag"; td.appendChild(tagEl); }
+        tagEl.textContent = p.calendarTag;
+      }
+    });
+  }
+
+  window.openDateEditor = function(td) {
+    var date = td.dataset.date;
+    editingDate = date;
+    var p = planByDate[date] || {};
+    var kmEl = td.querySelector(".km");
+    var tagEl = td.querySelector(".tag");
+    document.getElementById("editTitle").textContent = "編輯課表：" + date;
+    document.getElementById("editKm").value = p.calendarLabel || (kmEl ? kmEl.textContent : "");
+    document.getElementById("editTag").value = p.completed ? (p.calendarTag || "") : (p.calendarTag || (tagEl ? tagEl.textContent : ""));
+    document.getElementById("editCompleted").checked = !!p.completed;
+    document.getElementById("editOverlay").classList.add("open");
+  };
+  window.closeDateEditor = function() {
+    document.getElementById("editOverlay").classList.remove("open");
+    editingDate = null;
+  };
+  window.saveDateEditor = function() {
+    if (!editingDate) return;
+    var data = {
+      date: editingDate,
+      calendarLabel: document.getElementById("editKm").value.trim(),
+      calendarTag: document.getElementById("editTag").value.trim(),
+      completed: document.getElementById("editCompleted").checked
+    };
+    gasPost("upsertDailyPlan", { data: data }).then(function(){
+      planByDate[editingDate] = Object.assign({}, planByDate[editingDate], data);
+      applyDailyPlans([planByDate[editingDate]]);
+      closeDateEditor();
+    }).catch(function(){ alert("儲存失敗，請重試"); });
+  };
+  window.resetDateEditor = function() {
+    if (!editingDate) return;
+    var data = { date: editingDate, calendarLabel: "", calendarTag: "", completed: false };
+    gasPost("upsertDailyPlan", { data: data }).then(function(){
+      location.reload();
+    }).catch(function(){ alert("還原失敗，請重試"); });
+  };
+
+  document.querySelectorAll("td[data-date]").forEach(function(td){
+    td.addEventListener("click", function(){ openDateEditor(td); });
+  });
+
+  fetch(API + "?action=getDailyPlans")
+    .then(function(r){ return r.json(); })
+    .then(applyDailyPlans)
+    .catch(function(err){ console.warn("每日課表讀取失敗", err); });
+
   fetch(API + "?action=getWorkouts")
     .then(function(r){ return r.json(); })
     .then(function(workouts){

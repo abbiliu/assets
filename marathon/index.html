@@ -290,6 +290,52 @@
     }
     .rec-edit:active { background: rgba(249,199,79,0.30); }
 
+    .rec-more-wrap { position: relative; flex: 0 0 auto; }
+    .rec-more {
+      background: rgba(0,0,0,0.05);
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--muted);
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background 0.15s;
+    }
+    .rec-more:active { background: rgba(0,0,0,0.10); }
+    .rec-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      z-index: 10;
+      min-width: 108px;
+    }
+    .rec-menu.open { display: block; }
+    .rec-menu button {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .rec-menu button:active { background: rgba(0,0,0,0.06); }
+    .rec-menu button.danger { color: var(--bad); }
+
     .record-date-badge {
       flex-direction: column;
       gap: 2px;
@@ -713,13 +759,6 @@
       <div class="receipt">
         <div class="form">
           <div class="form-row">
-            <label>週期類型</label>
-            <div class="segmented">
-              <button type="button" class="active" id="targetPeriodWeekBtn" onclick="setTargetSegment('periodType', '週', this)">週目標</button>
-              <button type="button" id="targetPeriodMonthBtn" onclick="setTargetSegment('periodType', '月', this)">月目標</button>
-            </div>
-          </div>
-          <div class="form-row">
             <label>開始日期</label>
             <input id="targetStart" type="date">
           </div>
@@ -1021,7 +1060,6 @@
         '</div></div>' +
         '<div class="record-right">' +
         '<div class="record-amount-row"><div class="record-amount">' + w.distanceKm + '<span class="unit"> km</span></div>' + chevron + '</div>' +
-        '<button class="rec-edit edit-only" onclick="event.stopPropagation(); openWorkoutModal(\'edit\', ' + w.rowIndex + ')" title="編輯">✏️</button>' +
         '</div></div>';
     }
 
@@ -1425,37 +1463,42 @@
         .catch(function() {});
     }
 
+    function toggleRecMenu(id, ev) {
+      ev.stopPropagation();
+      var target = document.getElementById('menu-' + id);
+      document.querySelectorAll('.rec-menu.open').forEach(function(m) {
+        if (m !== target) m.classList.remove('open');
+      });
+      if (target) target.classList.toggle('open');
+    }
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.rec-menu.open').forEach(function(m) { m.classList.remove('open'); });
+    });
+
     function renderTargetList(targets) {
       var el = document.getElementById('targetList');
       if (!targets.length) { el.innerHTML = '<div class="empty">還沒有設定目標。</div>'; return; }
       el.innerHTML = targets.map(function(t) {
         return '<div class="record-item" id="tgt-' + t.rowIndex + '">' +
-          '<div class="record-left"><div class="record-badge">' + (t.periodType === '週' ? '📅' : '🗓️') + '</div><div class="record-main">' +
+          '<div class="record-main">' +
           '<div class="record-name">' + escapeHtml(t.periodType) + '目標：' + t.targetDistanceKm + ' km</div>' +
           '<div class="record-meta">' + escapeHtml(formatDate(t.periodStart)) + ' - ' + escapeHtml(formatDate(t.periodEnd)) + '</div>' +
           (t.sessionPlan ? '<div class="record-meta">' + escapeHtml(t.sessionPlan) + '</div>' : '') +
-          '</div></div>' +
-          '<div style="display:flex; gap:8px;">' +
-          '<button class="rec-edit" onclick="startEditTarget(' + t.rowIndex + ')" title="編輯">✏️</button>' +
-          '<button class="rec-delete" onclick="confirmDeleteTarget(' + t.rowIndex + ')" title="刪除">🗑</button>' +
           '</div>' +
+          '<div class="rec-more-wrap">' +
+          '<button class="rec-more" onclick="toggleRecMenu(\'tgt-' + t.rowIndex + '\', event)" title="更多">⋯</button>' +
+          '<div class="rec-menu" id="menu-tgt-' + t.rowIndex + '">' +
+          '<button onclick="startEditTarget(' + t.rowIndex + ')">編輯</button>' +
+          '<button class="danger" onclick="confirmDeleteTarget(' + t.rowIndex + ')">刪除</button>' +
+          '</div></div>' +
           '</div>';
       }).join('');
-    }
-
-    function setTargetSegment(key, value, el) {
-      state.targetForm[key] = value;
-      el.parentNode.querySelectorAll('button').forEach(function(btn) { btn.classList.remove('active'); });
-      el.classList.add('active');
     }
 
     function startEditTarget(rowIndex) {
       var t = state.targets.find(function(x) { return x.rowIndex === rowIndex; });
       if (!t) return;
       state.editingTargetRow = rowIndex;
-      state.targetForm.periodType = t.periodType;
-      document.getElementById('targetPeriodWeekBtn').classList.toggle('active', t.periodType === '週');
-      document.getElementById('targetPeriodMonthBtn').classList.toggle('active', t.periodType === '月');
       document.getElementById('targetStart').value = t.periodStart;
       document.getElementById('targetEnd').value = t.periodEnd;
       document.getElementById('targetDistance').value = t.targetDistanceKm;
@@ -1535,10 +1578,12 @@
           '<div class="record-name">' + escapeHtml(p.type || '—') + '　' + escapeHtml(kmText) + '</div>' +
           (p.note ? '<div class="record-meta">' + escapeHtml(p.note) + '</div>' : '') +
           '</div></div>' +
-          '<div style="display:flex; gap:8px;">' +
-          '<button class="rec-edit" onclick="startEditDailyPlan(\'' + p.date + '\')" title="編輯">✏️</button>' +
-          '<button class="rec-delete" onclick="confirmDeleteDailyPlan(\'' + p.date + '\')" title="刪除">🗑</button>' +
-          '</div>' +
+          '<div class="rec-more-wrap">' +
+          '<button class="rec-more" onclick="toggleRecMenu(\'dp-' + p.date + '\', event)" title="更多">⋯</button>' +
+          '<div class="rec-menu" id="menu-dp-' + p.date + '">' +
+          '<button onclick="startEditDailyPlan(\'' + p.date + '\')">編輯</button>' +
+          '<button class="danger" onclick="confirmDeleteDailyPlan(\'' + p.date + '\')">刪除</button>' +
+          '</div></div>' +
           '</div>';
       }).join('');
     }
