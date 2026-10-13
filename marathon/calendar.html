@@ -113,9 +113,9 @@
   }
   .edit-box h3{font-size:.95rem; font-weight:700; margin-bottom:14px}
   .edit-box label{display:block; font-size:.68rem; color:var(--muted); margin:12px 0 5px; font-weight:600}
-  .edit-box input[type="text"]{
+  .edit-box input[type="text"], .edit-box select{
     width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:9px;
-    font-size:.86rem; font-family:inherit; color:var(--ink); background:#FBFAF7;
+    font-size:1rem; font-family:inherit; color:var(--ink); background:#FBFAF7;
   }
   .edit-toggle-row{display:flex; align-items:center; justify-content:space-between; margin-top:14px}
   .edit-toggle-row label{margin:0; font-size:.8rem; color:var(--ink); font-weight:600}
@@ -315,6 +315,20 @@
     <input type="text" id="editKm" placeholder="14K">
     <label>小字備註（例如 本週重點）</label>
     <input type="text" id="editTag" placeholder="本週重點">
+    <label>課表類型（決定底色）</label>
+    <select id="editType">
+      <option value="long">長距離</option>
+      <option value="tempo">節奏跑</option>
+      <option value="easy">輕鬆跑</option>
+      <option value="gym">重訓</option>
+      <option value="rest">休息</option>
+      <option value="trip">出遊/出差</option>
+      <option value="race">比賽/活動</option>
+    </select>
+    <div class="edit-toggle-row">
+      <label for="editKey">⭐ 里程碑標記</label>
+      <input type="checkbox" id="editKey" style="width:20px;height:20px;">
+    </div>
     <div class="edit-toggle-row">
       <label for="editCompleted">標記為已完成</label>
       <input type="checkbox" id="editCompleted" style="width:20px;height:20px;">
@@ -331,6 +345,7 @@
 (function(){
   var API = "https://script.google.com/macros/s/AKfycbyy3ucbX9j5bj6VeOz4KsLIrUf0o5HkpdTSM7H_5zP0-Y6UfNEx74ZcaifiLrzmqJW2Aw/exec";
   var RUNNABLE = ["long","tempo","easy","trip","race"];
+  var TYPE_CLASSES = ["long","tempo","easy","gym","rest","trip","race"];
   var planByDate = {};
   var editingDate = null;
 
@@ -356,7 +371,21 @@
         if (!tagEl) { tagEl = document.createElement("span"); tagEl.className = "tag"; td.appendChild(tagEl); }
         tagEl.textContent = p.calendarTag;
       }
+      if (p.calendarType) {
+        td.className = p.calendarType + (p.calendarKey ? " key" : "");
+      }
     });
+  }
+
+  function currentTypeOf(td) {
+    var classes = (td.className || "").split(/\s+/);
+    var type = "";
+    var isKey = false;
+    classes.forEach(function(c){
+      if (c === "key") isKey = true;
+      else if (TYPE_CLASSES.indexOf(c) !== -1) type = c;
+    });
+    return { type: type, isKey: isKey };
   }
 
   window.openDateEditor = function(td) {
@@ -369,6 +398,9 @@
     document.getElementById("editKm").value = p.calendarLabel || (kmEl ? kmEl.textContent : "");
     document.getElementById("editTag").value = p.completed ? (p.calendarTag || "") : (p.calendarTag || (tagEl ? tagEl.textContent : ""));
     document.getElementById("editCompleted").checked = !!p.completed;
+    var cur = currentTypeOf(td);
+    document.getElementById("editType").value = p.calendarType || cur.type || "easy";
+    document.getElementById("editKey").checked = p.calendarType ? !!p.calendarKey : cur.isKey;
     document.getElementById("editOverlay").classList.add("open");
   };
   window.closeDateEditor = function() {
@@ -381,7 +413,9 @@
       date: editingDate,
       calendarLabel: document.getElementById("editKm").value.trim(),
       calendarTag: document.getElementById("editTag").value.trim(),
-      completed: document.getElementById("editCompleted").checked
+      completed: document.getElementById("editCompleted").checked,
+      calendarType: document.getElementById("editType").value,
+      calendarKey: document.getElementById("editKey").checked
     };
     gasPost("upsertDailyPlan", { data: data }).then(function(){
       planByDate[editingDate] = Object.assign({}, planByDate[editingDate], data);
@@ -391,7 +425,7 @@
   };
   window.resetDateEditor = function() {
     if (!editingDate) return;
-    var data = { date: editingDate, calendarLabel: "", calendarTag: "", completed: false };
+    var data = { date: editingDate, calendarLabel: "", calendarTag: "", completed: false, calendarType: "", calendarKey: false };
     gasPost("upsertDailyPlan", { data: data }).then(function(){
       location.reload();
     }).catch(function(){ alert("還原失敗，請重試"); });
