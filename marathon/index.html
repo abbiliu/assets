@@ -1210,14 +1210,13 @@
         .catch(function(err) { showToast('讀取本週資料失敗：' + err.message); });
     }
 
-    // 週一為一週起點，需與 Code.gs 的 _getWeekRange_ 邏輯保持一致
+    // 週日為一週起點，需與 Code.gs 的 _getWeekRange_ 邏輯保持一致
     function weekRangeKeys_(offset) {
       var ref = new Date();
       ref.setDate(ref.getDate() + (offset || 0) * 7);
-      var diffToMonday = (ref.getDay() + 6) % 7;
-      var monday = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - diffToMonday);
-      var sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
-      return { start: formatDateKey(monday), end: formatDateKey(sunday) };
+      var sunday = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - ref.getDay());
+      var saturday = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6);
+      return { start: formatDateKey(sunday), end: formatDateKey(saturday) };
     }
 
     // 與後端 getWeeklyStats 相同邏輯，但用前端已快取的 workouts/targets 直接算，避免每次切換都打一次 GAS
