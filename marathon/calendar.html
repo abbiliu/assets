@@ -127,13 +127,23 @@
   .edit-save{background:var(--ink); color:#fff}
   .edit-cancel{background:var(--rest-bg); color:var(--ink)}
   .edit-reset{background:transparent; color:var(--muted); text-decoration:underline; font-weight:500; margin-top:12px; width:100%; text-align:center; font-size:.72rem; border:none; cursor:pointer; padding:4px}
+
+  body.loading .cal-content{visibility:hidden}
+  .sync-indicator{
+    display:none; position:fixed; top:14px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; font-size:.7rem; padding:6px 14px;
+    border-radius:99px; z-index:20; letter-spacing:.04em; box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  }
+  body.loading .sync-indicator{display:block}
 </style>
 </head>
-<body>
+<body class="loading">
 
 <a class="back-btn" href="./index.html" aria-label="返回">
   <svg viewBox="0 -960 960 960"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z"/></svg>
 </a>
+
+<div class="sync-indicator" id="syncIndicator">更新中...</div>
 
 <header>
   <div class="eyebrow">Mt. Fuji Marathon</div>
@@ -152,6 +162,7 @@
   <span class="lg rest" style="color:#8B867E">休息</span>
 </div>
 
+<div class="cal-content">
 <!-- 10月 -->
 <div class="month"><span class="n">10</span><span class="t">OCTOBER</span></div>
 <table>
@@ -297,6 +308,7 @@
   <td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td>
 </tr>
 </table>
+</div>
 
 <div class="notes">
   <h3>執行重點</h3>
@@ -435,12 +447,20 @@
     td.addEventListener("click", function(){ openDateEditor(td); });
   });
 
-  fetch(API + "?action=getDailyPlans")
+  var revealed = false;
+  function reveal(){
+    if (revealed) return;
+    revealed = true;
+    document.body.classList.remove("loading");
+  }
+  setTimeout(reveal, 4000); // 保底：同步太久也不讓使用者一直卡在 loading
+
+  var loadDailyPlans = fetch(API + "?action=getDailyPlans")
     .then(function(r){ return r.json(); })
     .then(applyDailyPlans)
     .catch(function(err){ console.warn("每日課表讀取失敗", err); });
 
-  fetch(API + "?action=getWorkouts")
+  var loadWorkouts = fetch(API + "?action=getWorkouts")
     .then(function(r){ return r.json(); })
     .then(function(workouts){
       var byDate = {};
@@ -464,6 +484,8 @@
       });
     })
     .catch(function(err){ console.warn("訓練紀錄讀取失敗", err); });
+
+  Promise.all([loadDailyPlans, loadWorkouts]).then(reveal);
 })();
 </script>
 
