@@ -1024,6 +1024,8 @@
         .catch(function() {});
     }
 
+    var CAL_TYPE_LABEL = { long:'長距離', tempo:'節奏跑', easy:'輕鬆跑', gym:'重訓', rest:'休息', trip:'出遊/出差', race:'比賽/活動' };
+
     function renderTodayPlan() {
       var el = document.getElementById('todayCard');
       var body = document.getElementById('todayBody');
@@ -1035,12 +1037,16 @@
         body.innerHTML = '<div class="today-empty">今天沒有安排的訓練課表。</div>';
         return;
       }
-      var isRest = plan.type.indexOf('休息') !== -1;
+      // 日曆（calendar.html）編輯過的欄位優先，確保首頁「今日訓練」跟日曆顯示一致；
+      // 沒被編輯過的日期才退回課表原始欄位
+      var typeText = plan.calendarType ? (CAL_TYPE_LABEL[plan.calendarType] || plan.calendarType) : plan.type;
+      var kmText = plan.calendarLabel || (plan.distanceKm > 0 ? plan.distanceKm + ' km' : '—');
+      var noteText = plan.calendarTag || plan.note;
+      var isRest = plan.calendarType ? plan.calendarType === 'rest' : plan.type.indexOf('休息') !== -1;
       el.classList.toggle('rest', isRest);
-      var kmText = plan.distanceKm > 0 ? plan.distanceKm + ' km' : '—';
       body.innerHTML =
-        '<div class="today-body"><div class="today-type">' + plan.type + '</div><div class="today-km">' + kmText + '</div></div>' +
-        (plan.note ? '<div class="today-note">' + plan.note + '</div>' : '');
+        '<div class="today-body"><div class="today-type">' + typeText + '</div><div class="today-km">' + kmText + '</div></div>' +
+        (noteText ? '<div class="today-note">' + noteText + '</div>' : '');
     }
 
     function makeWorkoutItem(w) {
